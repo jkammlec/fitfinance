@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitFinance</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<style>
+    /* Header con degradado */
+    header {
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+        color: white;
+    }
+
+    /* Sección 1 y 3 con degradado */
+    .section-gradient {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+    }
+</style>
+
+<header class="bg-primary text-white text-center py-4">
+    <h1>FitFinance</h1>
+    <p>Calcula el crecimiento de tus ahorros según banco y periodo</p>
+</header>
+
+<!-- Introducción -->
+<div class="container my-4">
+    <div class="section-gradient p-3 bg-info text-white rounded">
+        <h2>Bienvenido a tu Calculadora de Ahorros</h2>
+        <p>Selecciona tu banco y periodo, ingresa tus aportes mensuales y observa cómo crecen tus ahorros.</p>
+    </div>
+</div>
+
+<!-- Calculadora -->
+<div class="container my-5">
+    <div class="p-3 border bg-light rounded shadow-sm">
+        <h3>Calculadora de Crecimiento</h3>
+        <form id="ahorroForm" class="row g-3 mt-3">
+            <h5>Seleccione Banco y Periodo:</h5>
+            <div class="col-md-6">
+                <label class="form-label">Banco</label>
+                <select id="banco" class="form-select" onchange="actualizarTasa()">
+                    <option value="0.0044">Banco Consorcio (0.44% mensual)</option>
+                    <option value="0.0044">Banco Ripley (0.44% mensual)</option>
+                    <option value="0.0040">Banco Security (0.40% mensual)</option>
+                    <option value="0.0038">Santander (0.38% mensual)</option>
+                    <option value="0.0037">Banco Estado (0.37% mensual)</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Periodo</label>
+                <select id="periodo" class="form-select" onchange="actualizarTasa()">
+                    <option value="mensual">Mensual</option>
+                    <option value="trimestral">Trimestral</option>
+                    <option value="semestral">Semestral</option>
+                    <option value="anual">Anual</option>
+                </select>
+            </div>
+
+            <div class="col-12 mt-3">
+                <p><strong>Tasa aplicada:</strong> <span id="tasaTexto">0.44% mensual</span></p>
+            </div>
+
+            <h5>Ingrese sus ahorros por mes:</h5>
+
+<div class="row">
+    <!-- Dos columnas para los 12 meses -->
+    <div class="col-md-6">
+        <label>Mes 1</label><input type="number" class="form-control mb-2" id="mes1">
+        <label>Mes 2</label><input type="number" class="form-control mb-2" id="mes2">
+        <label>Mes 3</label><input type="number" class="form-control mb-2" id="mes3">
+        <label>Mes 4</label><input type="number" class="form-control mb-2" id="mes4">
+        <label>Mes 5</label><input type="number" class="form-control mb-2" id="mes5">
+        <label>Mes 6</label><input type="number" class="form-control mb-2" id="mes6">
+    </div>
+    <div class="col-md-6">
+        <label>Mes 7</label><input type="number" class="form-control mb-2" id="mes7">
+        <label>Mes 8</label><input type="number" class="form-control mb-2" id="mes8">
+        <label>Mes 9</label><input type="number" class="form-control mb-2" id="mes9">
+        <label>Mes 10</label><input type="number" class="form-control mb-2" id="mes10">
+        <label>Mes 11</label><input type="number" class="form-control mb-2" id="mes11">
+        <label>Mes 12</label><input type="number" class="form-control mb-2" id="mes12">
+    </div>
+</div>
+
+
+            <div class="col-12 mt-3 text-center">
+                <button type="button" class="btn btn-primary me-2" onclick="calcularAhorro()">Calcular</button>
+                <button type="button" class="btn btn-secondary me-2" onclick="limpiarCampos()">Limpiar</button>
+                <button type="button" class="btn btn-success me-2" onclick="descargarGrafico()">Descargar Gráfico</button>
+                <button type="button" class="btn btn-info" onclick="exportarCSV()">Exportar CSV</button>
+            </div>
+        </form>
+
+        <div class="mt-4">
+            <h5>Resultado:</h5>
+            <p id="resultado">Ingrese los datos y presione calcular.</p>
+            <canvas id="grafico" height="100"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Texto de cierre -->
+<div class="container my-4">
+    <div class="section-gradient p-3 bg-secondary text-white rounded">
+        <h4>Consejo final</h4>
+        <p>La constancia es clave para tus metas financieras. ¡Empieza hoy y observa cómo tus ahorros crecen!</p>
+    </div>
+</div>
+
+<footer class="bg-dark text-white text-center py-3">
+    <p>&copy; 2025 FitFinance. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+let labels = [], data = [], mesesIngresados = [], tasaCalculada = 0;
+
+function actualizarTasa() {
+    let tasaMensual = parseFloat(document.getElementById('banco').value);
+    let periodo = document.getElementById('periodo').value;
+
+    if (periodo === 'mensual') {
+        tasaCalculada = tasaMensual;
+        document.getElementById('tasaTexto').innerText = (tasaMensual * 100).toFixed(2) + '% mensual';
+    } else if (periodo === 'trimestral') {
+        tasaCalculada = Math.pow(1 + tasaMensual, 3) - 1;
+        document.getElementById('tasaTexto').innerText = (tasaCalculada * 100).toFixed(2) + '% trimestral';
+    } else if (periodo === 'semestral') {
+        tasaCalculada = Math.pow(1 + tasaMensual, 6) - 1;
+        document.getElementById('tasaTexto').innerText = (tasaCalculada * 100).toFixed(2) + '% semestral';
+    } else {
+        tasaCalculada = Math.pow(1 + tasaMensual, 12) - 1;
+        document.getElementById('tasaTexto').innerText = (tasaCalculada * 100).toFixed(2) + '% anual';
+    }
+}
+
+function calcularAhorro() {
+    mesesIngresados = [];
+    labels = [];
+    data = [];
+    let acumulado = 0;
+
+    for (let i = 1; i <= 12; i++) {
+        let valor = parseFloat(document.getElementById('mes' + i).value) || 0;
+        mesesIngresados.push(valor);
+        acumulado += valor;
+        if (i % (document.getElementById('periodo').value === 'mensual' ? 1 :
+                 document.getElementById('periodo').value === 'trimestral' ? 3 :
+                 document.getElementById('periodo').value === 'semestral' ? 6 : 12) === 0) {
+            acumulado *= (1 + tasaCalculada);
+        }
+        labels.push('Mes ' + i);
+        data.push(acumulado.toFixed(2));
+    }
+
+    document.getElementById('resultado').innerText =
+        `Total aportado: $${mesesIngresados.reduce((a,b)=>a+b,0).toFixed(2)} | Crecimiento final: $${acumulado.toFixed(2)}`;
+
+    const ctx = document.getElementById('grafico').getContext('2d');
+    const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientFill.addColorStop(0, 'rgba(0, 123, 255, 0.6)');
+    gradientFill.addColorStop(1, 'rgba(0, 123, 255, 0)');
+    const gradientLine = ctx.createLinearGradient(0, 0, 400, 0);
+    gradientLine.addColorStop(0, '#007bff');
+    gradientLine.addColorStop(1, '#00c6ff');
+
+    if (window.myChart) window.myChart.destroy();
+    window.myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Crecimiento acumulado',
+                data: data,
+                borderColor: gradientLine,
+                backgroundColor: gradientFill,
+                fill: true,
+                tension: 0.3,
+                borderWidth: 3
+            }]
+        }
+    });
+}
+
+function limpiarCampos() {
+    for (let i = 1; i <= 12; i++) document.getElementById('mes' + i).value = '';
+    document.getElementById('resultado').innerText = 'Ingrese los datos y presione calcular.';
+    if (window.myChart) window.myChart.destroy();
+}
+
+function descargarGrafico() {
+    const link = document.createElement('a');
+    link.href = document.getElementById('grafico').toDataURL('image/png');
+    link.download = 'grafico_ahorros.png';
+    link.click();
+}
+
+function exportarCSV() {
+    if (labels.length === 0) { alert('Primero calcule los datos.'); return; }
+    let csvContent = "data:text/csv;charset=utf-8,Mes,Aporte,Crecimiento\n";
+    for (let i = 0; i < labels.length; i++) {
+        csvContent += `${labels[i]},${mesesIngresados[i]},${data[i]}\n`;
+    }
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'datos_ahorros.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+
+</body>
+</html>
